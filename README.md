@@ -1,63 +1,114 @@
-# GV_PROJ
+# Portal de Solicitações — Django
 
-Sistema Django com perfis de acesso (Admin, Solicitante e Projetista), dashboards e fluxo de solicitações.
+Aplicação web em **Python / Django** para organizar solicitações, aprovações
+e acompanhamento de trabalho por perfis de acesso. Inclui dashboards,
+catálogo de dispositivos e registro de auditoria.
 
-## Requisitos
+## Leitura rápida
 
-- Windows 10/11
-- Python 3.12+ (recomendado 3.12 ou 3.13)
-- Git
+| O que revisar | Arquivo ou diretório |
+|---|---|
+| Modelos e fluxo de solicitações | [portal/models.py](portal/models.py) e [portal/views.py](portal/views.py) |
+| Login e gestão de contas | [accounts/](accounts/) |
+| Diretório de usuários de demonstração | [accounts/directory.py](accounts/directory.py) |
+| Rotas da aplicação | [config/urls.py](config/urls.py) e [portal/urls.py](portal/urls.py) |
+| Interface e dashboards | [templates/portal/](templates/portal/) |
+| Dependências | [requirements.txt](requirements.txt) |
 
-## Subindo em outra máquina
+O diretório público de usuários utiliza nomes, e-mails e identificadores
+fictícios, conforme documentado em `accounts/directory.py`.
+Esta versão está configurada para desenvolvimento local com SQLite e `DEBUG=True`.
 
-1. Clone o repositório:
+## Funcionalidades
 
-```powershell
-git clone <URL_DO_REPOSITORIO>
-cd GV_PROJ
+- Perfis Admin, Solicitante, Projetista e Dispositivos.
+- Abertura, acompanhamento e transições do fluxo de solicitações.
+- Dashboards por perfil e consulta de dispositivos.
+- Registro de ações para auditoria.
+
+## Executar localmente
+
+Use **Python 3.12 ou superior**, compatível com a versão de Django fixada
+nas dependências. O passo a passo abaixo usa apenas o computador local.
+
+```bash
+git clone https://github.com/enggusttavomn/gv-proj-portal-de-solicitacoes.git
+cd gv-proj-portal-de-solicitacoes
+python -m venv .venv
 ```
 
-2. Crie e ative o ambiente virtual:
+Ative o ambiente:
 
-```powershell
-py -3 -m venv .venv
-.\.venv\Scripts\Activate.ps1
-```
+| Sistema | Comando |
+|---|---|
+| Windows PowerShell | `.\.venv\Scripts\Activate.ps1` |
+| Linux / macOS | `source .venv/bin/activate` |
 
-3. Instale dependências:
-
-```powershell
-pip install --upgrade pip
-pip install -r requirements.txt
-```
-
-4. Aplique as migrations:
-
-```powershell
+```bash
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
 python manage.py migrate
+python manage.py check
 ```
 
-5. Popule dados iniciais (opcional):
+O banco `db.sqlite3` é criado localmente pelas migrações; ele não faz parte
+dos arquivos versionados desta versão.
 
-```powershell
+### Dados de demonstração
+
+Em um banco local descartável, execute:
+
+```bash
 python seed_users.py
 python seed_solicitacoes.py
 ```
 
-6. Rode os servidores:
+O primeiro script cria os grupos e usuários do catálogo de demonstração.
+Ele também redefine as senhas desses usuários quando executado novamente.
+Consulte os identificadores e a senha de demonstração em
+[accounts/directory.py](accounts/directory.py).
 
-```powershell
-.\GUSTAVO_run_three_servers_local.bat
+Para criar um superusuário local com credenciais próprias:
+
+```bash
+python manage.py createsuperuser
 ```
 
-## URLs
+### Iniciar o portal
 
-- Admin: http://127.0.0.1:8000/accounts/login
-- Solicitante: http://127.0.0.2:8001/accounts/login
-- Projetista: http://127.0.0.3:8002/accounts/login
+```bash
+python manage.py runserver 127.0.0.1:8000
+```
 
-## Observações
+Abra <http://127.0.0.1:8000/accounts/login>.
 
-- O arquivo `db.sqlite3` está versionado para facilitar o uso imediato.
-- Os scripts `.bat` tentam detectar automaticamente `.venv_local`, `.venv2` ou `.venv`.
-- Para uso público no GitHub, revise segredos e dados sensíveis antes de publicar.
+Para comparar os perfis em sessões separadas, abra três terminais com o
+ambiente ativado e execute um comando em cada:
+
+```bash
+python manage.py runserver 127.0.0.1:8000
+python manage.py runserver 127.0.0.2:8001
+python manage.py runserver 127.0.0.3:8002
+```
+
+| Perfil para demonstração | Endereço |
+|---|---|
+| Admin | <http://127.0.0.1:8000/accounts/login> |
+| Solicitante | <http://127.0.0.2:8001/accounts/login> |
+| Projetista | <http://127.0.0.3:8002/accounts/login> |
+
+As portas permitem separar as sessões. As permissões dependem do usuário
+autenticado e dos grupos, não apenas do endereço usado.
+
+## Estado e próximos passos
+
+- `python manage.py check` verifica a configuração; não substitui testes dos fluxos.
+- As configurações atuais usam chave de desenvolvimento e `DEBUG=True`.
+  Uma implantação requer configuração de produção e credenciais próprias.
+- A avaliação funcional deve usar dados fictícios em um banco local.
+- Não há uma demonstração hospedada indicada neste repositório.
+
+## Contexto e autoria
+
+Versão pessoal do projeto GV_PROJ mantida por Gustavo Nascimento.
+O histórico de commits preserva as contribuições registradas no repositório.
