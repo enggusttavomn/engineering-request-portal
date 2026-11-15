@@ -17,7 +17,8 @@ catálogo de dispositivos e registro de auditoria.
 
 O diretório público de usuários utiliza nomes, e-mails e identificadores
 fictícios, conforme documentado em `accounts/directory.py`.
-Esta versão está configurada para desenvolvimento local com SQLite e `DEBUG=True`.
+Esta versão usa SQLite local. O modo de desenvolvimento precisa ser habilitado
+explicitamente; sem ele, uma chave secreta própria é obrigatória.
 
 ## Funcionalidades
 
@@ -44,6 +45,13 @@ Ative o ambiente:
 | Windows PowerShell | `.\.venv\Scripts\Activate.ps1` |
 | Linux / macOS | `source .venv/bin/activate` |
 
+Defina o modo local no terminal que executará os comandos:
+
+| Sistema | Comando |
+|---|---|
+| Windows PowerShell | `$env:DJANGO_DEBUG="1"` |
+| Linux / macOS | `export DJANGO_DEBUG=1` |
+
 ```bash
 python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
@@ -64,7 +72,9 @@ python seed_solicitacoes.py
 ```
 
 O primeiro script cria os grupos e usuários do catálogo de demonstração.
-Ele também redefine as senhas desses usuários quando executado novamente.
+Ele preserva senhas, grupos e dados das contas que já existem. Os dois seeds
+recusam execução fora do modo de desenvolvimento. O seed de solicitações
+substitui somente os registros de demonstração com prefixo `[Seed]`.
 Consulte os identificadores e a senha de demonstração em
 [accounts/directory.py](accounts/directory.py).
 
@@ -102,9 +112,18 @@ autenticado e dos grupos, não apenas do endereço usado.
 
 ## Estado e próximos passos
 
-- `python manage.py check` verifica a configuração; não substitui testes dos fluxos.
-- As configurações atuais usam chave de desenvolvimento e `DEBUG=True`.
-  Uma implantação requer configuração de produção e credenciais próprias.
+- Execute `python manage.py check`, `python manage.py makemigrations --check --dry-run`
+  e `python manage.py test`. O workflow de CI executa essas verificações com Python 3.12.
+- `DJANGO_SECRET_KEY` define uma chave própria; em desenvolvimento, sua ausência gera
+  uma chave efêmera e invalida sessões quando o servidor reinicia.
+  A chave fixa de versões anteriores era pública e não deve ser reutilizada;
+  se algum ambiente a utilizou, substitua-a e encerre as sessões existentes.
+- Para uma implantação, mantenha `DJANGO_DEBUG=0`, defina `DJANGO_SECRET_KEY` e
+  `DJANGO_ALLOWED_HOSTS` (hosts separados por vírgula), use HTTPS e um servidor WSGI/ASGI.
+  Cookies seguros, redirecionamento HTTPS e HSTS ficam ativos fora do modo local.
+  Sirva os arquivos de `python manage.py collectstatic` em `staticfiles/`.
+- `portal/views.py` ainda concentra regras de negócio e dashboards; separar serviços
+  e consultas com cobertura dos fluxos é uma evolução pendente.
 - A avaliação funcional deve usar dados fictícios em um banco local.
 - Não há uma demonstração hospedada indicada neste repositório.
 

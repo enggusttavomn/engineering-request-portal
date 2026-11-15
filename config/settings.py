@@ -4,17 +4,34 @@ Gerado por 'django-admin startproject' usando Django 6.0.
 """
 
 from pathlib import Path
+import os
+import re
+import sys
+
+from django.core.exceptions import ImproperlyConfigured
+from django.core.management.utils import get_random_secret_key
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# âš ï¸ DEV ONLY
-# Mantive uma SECRET_KEY "fixa" só pra não quebrar sessão toda hora.
-# Em produção, isso vai para variável de ambiente (.env).
-SECRET_KEY = "django-insecure-GV_PROJ-portal-dev-keep-this-fixed"
+DEBUG = os.environ.get("DJANGO_DEBUG", "0").lower() in ("1", "true", "yes", "on")
+SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "")
+if not SECRET_KEY:
+    if not DEBUG:
+        raise ImproperlyConfigured("Defina DJANGO_SECRET_KEY; para desenvolvimento local, defina DJANGO_DEBUG=1.")
+    # Chave efemera apenas para desenvolvimento; use a variavel para persistir sessoes.
+    SECRET_KEY = get_random_secret_key()
 
-DEBUG = True
-
-ALLOWED_HOSTS = ["127.0.0.1", "127.0.0.2", "127.0.0.3", "localhost", "192.168.0.155"]
+ALLOWED_HOSTS = [
+    host.strip() for host in os.environ.get(
+        "DJANGO_ALLOWED_HOSTS", "127.0.0.1,127.0.0.2,127.0.0.3,localhost"
+    ).split(",") if host.strip()
+]
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = not DEBUG
+SECURE_SSL_REDIRECT = not DEBUG
+SECURE_HSTS_SECONDS = 0 if DEBUG else 31536000
+SECURE_HSTS_INCLUDE_SUBDOMAINS = not DEBUG
+SECURE_HSTS_PRELOAD = not DEBUG
 
 # Application definition
 INSTALLED_APPS = [
@@ -24,7 +41,6 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "django_browser_reload",
 
     # Apps do projeto
     "accounts.apps.AccountsConfig",
@@ -35,12 +51,15 @@ MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
-    "django_browser_reload.middleware.BrowserReloadMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
+
+if DEBUG:
+    INSTALLED_APPS.append("django_browser_reload")
+    MIDDLEWARE.insert(3, "django_browser_reload.middleware.BrowserReloadMiddleware")
 
 ROOT_URLCONF = "config.urls"
 
@@ -91,6 +110,7 @@ USE_TZ = True
 
 # Static files
 STATIC_URL = "static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
 # âœ… usa a pasta /static que vocÃª vai criar agora
 STATICFILES_DIRS = [
@@ -106,11 +126,6 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # Cada porta (8000, 8001, 8002) tem sua própria sessão.
 # Isso permite que Admin, Solicitante e Projetista tenham usuários logados diferentes,
 # mesmo quando o navegador usa o mesmo host (ex.: 127.0.0.1).
-import os
-import re
-import sys
-
-
 def _detect_port():
     # Permite definir a porta via variável de ambiente (mais confiável em scripts).
     env_port = os.environ.get("DJANGO_PORT")

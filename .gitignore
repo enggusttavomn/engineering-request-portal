@@ -34,3 +34,4 @@ db.sqlite3
 
 # User-uploaded media (never commit real uploads)
 media/
+staticfiles/

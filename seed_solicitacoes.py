@@ -18,6 +18,8 @@ django.setup()
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
+from django.conf import settings
+from django.core.management.base import CommandError
 from django.utils import timezone
 
 from portal.models import Prioridade, Solicitacao, SolicitacaoStatus
@@ -67,6 +69,8 @@ def collect_users_for_group(group_name, fallback_username, fallback_first, fallb
 
 
 def make_status_samples():
+    if not settings.DEBUG:
+        raise CommandError("Seed de demonstracao permitido somente com DJANGO_DEBUG=1.")
     solicitantes, _ = collect_users_for_group(
         "SOLICITANTE", "seed.solicitante", "Seed", "Solicitante", "seed.solicitante@example.com"
     )

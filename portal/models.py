@@ -6,7 +6,7 @@ status e dispositivos no sistema FRNR.
 """
 
 from django.conf import settings
-from django.db import models
+from django.db import models, transaction
 from django.utils import timezone
 
 
@@ -208,6 +208,7 @@ class Solicitacao(models.Model):
         """Representação em string da solicitação."""
         return f"#{self.id} - {self.titulo}"
 
+    @transaction.atomic
     def mudar_status(self, novo_status: str, usuario, comentario: str = ""):
         """
         Altera o status da solicitação e registra a mudança no histórico.
@@ -222,6 +223,8 @@ class Solicitacao(models.Model):
             - Salva o novo status no banco de dados
             - Cria um registro de log da mudança
         """
+        if novo_status not in SolicitacaoStatus.values:
+            raise ValueError("Status de solicitacao invalido.")
         status_antigo = self.status
         if status_antigo == novo_status:
             return  # Evita registrar mudança desnecessária

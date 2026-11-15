@@ -12,7 +12,6 @@ from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 from django.urls import reverse
-from django.template import loader
 
 from .forms import DropdownLoginForm
 from portal.views import (
@@ -86,11 +85,6 @@ def login_view(request):
     else:
         # GET request - exibe o formulário vazio
         form = DropdownLoginForm()
-
-    # ===== DETECTOR DO TEMPLATE REAL (mantive para debug) =====
-    tpl = loader.get_template("accounts/login.html")
-    print(">>> TEMPLATE REAL DO LOGIN:", tpl.origin.name)
-    # ==========================================================
 
     return render(request, "accounts/login.html", {"form": form, "error": error})
 
