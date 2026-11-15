@@ -1,4 +1,6 @@
-# Portal de Solicitações — Django
+# Portal de solicitações de engenharia
+
+**GV_PROJ** é o identificador usado no código e no histórico deste projeto Django.
 
 Aplicação web em **Python / Django** para organizar solicitações, aprovações
 e acompanhamento de trabalho por perfis de acesso. Inclui dashboards,
